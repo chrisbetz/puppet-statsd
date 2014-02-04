@@ -58,5 +58,4 @@ class statsd::params {
       fail('Unsupported OS Family')
     }
   }
-
 }
