@@ -1,3 +1,3 @@
 forge 'http://forge.puppetlabs.com'
 
-mod 'puppetlabs/nodejs'
+mod 'puppetlabs/nodejs', '>= 0.2.0'
