@@ -1,47 +1,62 @@
 class statsd::params {
-  $graphiteserver   = 'localhost'
-  $graphiteport     = '2003'
-  $backends         = [ './backends/graphite' ]
-  $address          = '0.0.0.0'
-  $listenport       = '8125'
-  $flushinterval    = '10000'
-  $percentthreshold = ['90']
-  $ensure           = 'present'
-  $provider         = 'npm'
-  $config           = { }
-  $node_module_dir  = ''
+
+  # Install
+  $defaults_file     = '/etc/default/statsd'
+  $defaults_template = "${module_name}/statsd-defaults.erb"
+  $init_file         = '/etc/init.d/statsd'
+  $log_file          = '/var/log/statsd/statsd.log'
+  $package_ensure    = 'present'
+  $package_name      = 'statsd'
+  $package_provider  = 'npm'
+  $service_ensure    = 'running'
+  $service_manage    = true
+  $service_name      = 'statsd'
+  $statsd_bin        = "puppet:///modules/${module_name}/statsd-wrapper"
+  $statsd_bin_file   = '/usr/local/sbin/statsd'
+  # Config
+  $backends          = [ './backends/graphite' ]
+  $config_file       = '/etc/statsd/localConfig.js'
+  $config_variables  = {}
+  $flush_interval    = 10000
+  $graphite_port     = 2003
+  $graphite_server   = 'localhost'
+  $listen_address    = '0.0.0.0'
+  $listen_port       = 8125
+  $node_module_dir   = undef
+  $percent_threshold = ['90']
 
   case $::osfamily {
     'RedHat': {
-      $init_script = 'puppet:///modules/statsd/statsd-init-rhel'
+      $init_content = "puppet:///modules/${module_name}/statsd-init-rhel"
       if ! $node_module_dir {
-        $statsjs = '/usr/lib/node_modules/statsd/stats.js'
+        $statsjs_file = '/usr/lib/node_modules/statsd/stats.js'
       }
       else {
-        $statsjs = "${node_module_dir}/statsd/stats.js"
+        $statsjs_file = "${node_module_dir}/statsd/stats.js"
       }
     }
     'Debian': {
-      $init_script = 'puppet:///modules/statsd/statsd-init'
+      $init_content = "puppet:///modules/${module_name}/statsd-init"
       if ! $node_module_dir {
-        case $provider {
+        case $package_provider {
           'apt': {
-            $statsjs = '/usr/share/statsd/stats.js'
+            $statsjs_file = '/usr/share/statsd/stats.js'
           }
           'npm': {
-            $statsjs = '/usr/lib/node_modules/statsd/stats.js'
+            $statsjs_file = '/usr/lib/node_modules/statsd/stats.js'
           }
           default: {
             fail('Unsupported provider')
           }
         }
-      } 
+      }
       else {
-        $statsjs = "${node_module_dir}/statsd/stats.js"
+        $statsjs_file = "${node_module_dir}/statsd/stats.js"
       }
     }
     default: {
       fail('Unsupported OS Family')
     }
   }
+
 }
